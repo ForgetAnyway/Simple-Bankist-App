@@ -9,7 +9,7 @@ const account1 = {
     owner: "Jonas Schmedtmann",
     movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
     interestRate: 1.2, // %
-    pin: 2222,
+    pin: 1111,
 };
 
 const account2 = {
@@ -33,7 +33,7 @@ const account4 = {
     pin: 4444,
 };
 
-// const accounts = [account1, account2, account3, account4];
+const accounts = [account1, account2, account3, account4];
 
 // Elements
 const labelWelcome = document.querySelector(".welcome");
@@ -150,8 +150,6 @@ const displayMovements = function(movements) {
     });
 };
 
-displayMovements(account1.movements);
-
 const user = "Steven Thomas Williams";
 
 const createUsername = function(accs) {
@@ -165,84 +163,82 @@ const createUsername = function(accs) {
     });
 };
 
-const accounts = [account1, account2, account3, account4];
+const displaySummary = function(acc) {
+    const interest = acc.movements
+        .filter((mov) => mov > 0)
+        .map((dep) => dep * (acc.interestRate / 100))
+        .reduce((acc, int) => acc + int);
+
+    const deposits = acc.movements
+        .filter((mov) => mov > 0)
+        .reduce((acc, dep) => acc + dep);
+
+    const withdrawals = acc.movements
+        .filter((mov) => mov < 0)
+        .reduce((acc, dep) => acc + dep);
+
+    labelSumIn.textContent = deposits;
+    labelSumOut.textContent = withdrawals;
+    labelSumInterest.textContent = interest;
+};
+
+// const accounts = [account1, account2, account3, account4];
 createUsername(accounts);
 console.log(accounts);
 
-const calcPrintBalance = function(movements) {
-    const balance = movements.reduce(function(acc, cur) {
+const calcPrintBalance = function(acc) {
+    const balance = acc.movements.reduce(function(acc, cur) {
         return acc + cur;
     }, 0);
+    acc.balance = balance;
     labelBalance.textContent = `${balance}$`;
 };
 
-calcPrintBalance(movements);
+const updateInterface = function(currentAccount) {
+    displayMovements(currentAccount.movements);
+    calcPrintBalance(currentAccount);
+    displaySummary(currentAccount);
+};
 
-const deposits = movements.filter(function(mov) {
-    return mov > 0;
-});
+let currentAccount;
 
-const withdrawals = movements.filter(function(mov) {
-    return mov < 0;
-});
+const login = function(e) {
+    e.preventDefault();
+    currentAccount = accounts.find(
+        (acc) => acc.username === inputLoginUsername.value
+    );
 
-console.log(deposits);
-console.log(withdrawals);
-
-const maxValue = movements.reduce(function(acc, curr) {
-    if (acc > curr) {
-        return acc;
-    } else {
-        return curr;
+    if (currentAccount && currentAccount.pin === Number(inputLoginPin.value)) {
+        labelWelcome.textContent = `Welcome back ${
+      currentAccount.owner.split(" ")[0]
+    }`;
     }
-}, movements[0]);
+    inputLoginUsername.value = inputLoginPin.value = "";
+    inputLoginPin.blur();
+    containerApp.style.opacity = 100;
 
-console.log(maxValue);
+    updateInterface(currentAccount);
+};
 
-// const juliasDog = [9, 16, 6, 8, 3];
-// const katesDog = [10, 5, 6, 1, 4];
+const transfer = function(e) {
+    e.preventDefault();
+    const amount = Number(inputTransferAmount.value);
+    const receiverAccount = accounts.find(
+        (acc) => acc.username === inputTransferTo.value
+    );
+    inputTransferAmount.value = inputTransferTo.value = "";
+    if (
+        amount > 0 &&
+        receiverAccount &&
+        amount <= currentAccount.balance &&
+        receiverAccount.username !== currentAccount.username
+    ) {
+        currentAccount.movements.push(-amount);
+        receiverAccount.movements.push(amount);
+    }
+    updateInterface(currentAccount);
+};
 
-// const checkDogs = function(array1, array2) {
-//     array1.splice(-2, 3);
-//     array1.splice(0, 1);
-//     const bothDogs = array1.concat(array2);
-//     console.log(bothDogs);
-//     bothDogs.forEach(function(dog, index) {
-//         if (dog >= 3) {
-//             console.log(
-//                 `Dog Number ${index + 1} is an adult and its ${dog} years old`
-//             );
-//         } else {
-//             console.log(
-//                 `Dog Number ${index + 1} is still a puppy and its ${dog} years old`
-//             );
-//         }
-//     });
-// };
+btnLogin.addEventListener("click", login);
 
-// checkDogs(juliasDog, katesDog);
-
-// Map works same as forEach but creating newArray
-
-// Filter creating an array which elements comes from othery array if condition is true
-
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-// const euroToUSD = 1.1;
-
-// const dollars = movements.map(mov => mov * euroToUSD);
-
-// console.log(dollars);
-
-// for (const mov of movements) {
-//     const dollar2 = mov * euroToUSD;
-//     console.log(dollar2);
-// }
-
-// const movementsDescriptions = movements.map((mov, i, arr) => {
-//     if (mov > 0) {
-//         return `Movement ${i + 1} ${mov} winner`;
-//     } else return `Movement ${i + 1} ${mov} looser`;
-// });
-
-// console.log(movementsDescriptions);
+btnTransfer.addEventListener("click", transfer);

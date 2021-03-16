@@ -132,9 +132,11 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 //     console.log(`${key}: ${value}`);
 // });
 
-const displayMovements = function(movements) {
+const displayMovements = function(movements, sort = false) {
+    const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
     containerMovements.innerHTML = "";
-    movements.forEach(function(mov, i) {
+    movs.forEach(function(mov, i) {
         const type = mov > 0 ? "deposit" : "withdrawal";
         const html = `
   <div class="movements__row">
@@ -204,6 +206,7 @@ let currentAccount;
 
 const login = function(e) {
     e.preventDefault();
+
     currentAccount = accounts.find(
         (acc) => acc.username === inputLoginUsername.value
     );
@@ -239,6 +242,46 @@ const transfer = function(e) {
     updateInterface(currentAccount);
 };
 
+const closeAccount = function(e) {
+    e.preventDefault();
+    // console.log("Delete");
+    if (
+        inputCloseUsername.value === currentAccount.username &&
+        Number(inputClosePin.value) === currentAccount.pin
+    ) {
+        const index = accounts.findIndex(
+            (acc) => acc.username === currentAccount.username
+        );
+        accounts.splice(index, 1);
+        containerApp.style.opacity = 0;
+    }
+    inputCloseUsername.value = inputClosePin.value = "";
+};
+
+const takeALoan = function(e) {
+    e.preventDefault();
+    const amount = Number(inputLoanAmount.value);
+    if (
+        amount > 0 &&
+        currentAccount.movements.some((mov) => mov >= amount * 0.1)
+    ) {
+        currentAccount.movements.push(amount);
+        updateInterface(currentAccount);
+        inputLoanAmount.value = "";
+    }
+};
+
+const accountMovements = accounts.map((acc) => acc.movements);
+const allMovements = accountMovements.flat();
+const overallBalance = allMovements.reduce((acc, mov) => acc + mov, 0);
+console.log(overallBalance);
+console.log(allMovements);
+console.log(accountMovements);
+
 btnLogin.addEventListener("click", login);
 
 btnTransfer.addEventListener("click", transfer);
+
+btnClose.addEventListener("click", closeAccount);
+
+btnLoan.addEventListener("click", takeALoan);

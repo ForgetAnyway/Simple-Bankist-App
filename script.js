@@ -285,3 +285,13 @@ btnTransfer.addEventListener("click", transfer);
 btnClose.addEventListener("click", closeAccount);
 
 btnLoan.addEventListener("click", takeALoan);
+
+const movementsUI = Array.from(document.querySelectorAll(".movements__value"));
+console.log(movementsUI);
+
+labelSumIn.addEventListener("click", function() {
+    const movementsUI = Array.from(
+        document.querySelectorAll(".movements__value")
+    );
+    console.log(movementsUI);
+});

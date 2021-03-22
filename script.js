@@ -10,6 +10,16 @@ const account1 = {
     movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
     interestRate: 1.2, // %
     pin: 1111,
+    movementsDates: [
+        "2019-11-18T21:31:17.178Z",
+        "2019-12-23T07:42:02.383Z",
+        "2020-01-28T09:15:04.904Z",
+        "2020-04-01T10:17:24.185Z",
+        "2020-05-08T14:11:59.604Z",
+        "2020-05-27T17:01:17.194Z",
+        "2020-07-11T23:36:17.929Z",
+        "2020-07-12T10:51:36.790Z",
+    ],
 };
 
 const account2 = {
@@ -132,8 +142,10 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 //     console.log(`${key}: ${value}`);
 // });
 
-const displayMovements = function(movements, sort = false) {
-    const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+const displayMovements = function(acc, sort = false) {
+    const movs = sort ?
+        acc.movements.slice().sort((a, b) => a - b) :
+        acc.movements;
 
     containerMovements.innerHTML = "";
     movs.forEach(function(mov, i) {
@@ -144,7 +156,7 @@ const displayMovements = function(movements, sort = false) {
       i + 1
     } ${type}</div>
         
-          <div class="movements__value">${mov}</div>
+          <div class="movements__value">${mov.toFixed(2)}</div>
         </div>
         
   `;
@@ -179,9 +191,9 @@ const displaySummary = function(acc) {
         .filter((mov) => mov < 0)
         .reduce((acc, dep) => acc + dep);
 
-    labelSumIn.textContent = deposits;
-    labelSumOut.textContent = withdrawals;
-    labelSumInterest.textContent = interest;
+    labelSumIn.textContent = deposits.toFixed(2);
+    labelSumOut.textContent = withdrawals.toFixed(2);
+    labelSumInterest.textContent = interest.toFixed(2);
 };
 
 // const accounts = [account1, account2, account3, account4];
@@ -193,11 +205,11 @@ const calcPrintBalance = function(acc) {
         return acc + cur;
     }, 0);
     acc.balance = balance;
-    labelBalance.textContent = `${balance}$`;
+    labelBalance.textContent = `${balance.toFixed(2)}$`;
 };
 
 const updateInterface = function(currentAccount) {
-    displayMovements(currentAccount.movements);
+    displayMovements(currentAccount);
     calcPrintBalance(currentAccount);
     displaySummary(currentAccount);
 };
@@ -225,7 +237,7 @@ const login = function(e) {
 
 const transfer = function(e) {
     e.preventDefault();
-    const amount = Number(inputTransferAmount.value);
+    const amount = +inputTransferAmount.value;
     const receiverAccount = accounts.find(
         (acc) => acc.username === inputTransferTo.value
     );
@@ -260,7 +272,7 @@ const closeAccount = function(e) {
 
 const takeALoan = function(e) {
     e.preventDefault();
-    const amount = Number(inputLoanAmount.value);
+    const amount = Number(Math.floor(inputLoanAmount.value));
     if (
         amount > 0 &&
         currentAccount.movements.some((mov) => mov >= amount * 0.1)
@@ -270,6 +282,30 @@ const takeALoan = function(e) {
         inputLoanAmount.value = "";
     }
 };
+
+let sorted = false;
+btnSort.addEventListener("click", function(e) {
+    e.preventDefault();
+    displayMovements(currentAccount.movements, !sorted);
+    sorted = !sorted;
+});
+
+// Fake Always Logged In
+currentAccount = account1;
+updateInterface(currentAccount);
+containerApp.style.opacity = 100;
+const currentDate = new Date();
+console.log(currentDate);
+// labelDate.textContent = day + month + year;
+const day = `${currentDate.getDate()}`.padStart(2, 0);
+const month = `${currentDate.getMonth() + 1}`.padStart(2, 0);
+const year = currentDate.getFullYear();
+const hours = currentDate.getHours();
+const minutes = currentDate.getMinutes();
+
+labelDate.textContent = `${day}/${month}/${year}, ${hours}:${minutes}`;
+
+//
 
 const accountMovements = accounts.map((acc) => acc.movements);
 const allMovements = accountMovements.flat();
@@ -285,13 +321,3 @@ btnTransfer.addEventListener("click", transfer);
 btnClose.addEventListener("click", closeAccount);
 
 btnLoan.addEventListener("click", takeALoan);
-
-const movementsUI = Array.from(document.querySelectorAll(".movements__value"));
-console.log(movementsUI);
-
-labelSumIn.addEventListener("click", function() {
-    const movementsUI = Array.from(
-        document.querySelectorAll(".movements__value")
-    );
-    console.log(movementsUI);
-});

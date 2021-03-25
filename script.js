@@ -1,7 +1,5 @@
 "use strict";
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 // BANKIST APP
 
 // Data
@@ -110,75 +108,27 @@ const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
 /////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
 
-// const currencies = new Map([
-//     ['USD', 'United States dollar'],
-//     ['EUR', 'Euro'],
-//     ['GBP', 'Pound sterling'],
-// ]);
+// LogOut Timer
+const startLogOuTimer = function() {
+    const tick = function() {
+        const min = String(Math.trunc(time / 60)).padStart(2, 0);
+        const sec = String(time % 60).padStart(2, 0);
+        labelTimer.textContent = `${min}:${sec}`;
+        if (time === 0) {
+            clearInterval();
+            containerApp.style.opacity = 0;
+            labelWelcome.textContent = "Log In to Get Started";
+        }
+        time--;
+    };
+    let time = 300;
+    tick();
+    const timer = setInterval(tick, 1000);
+    return timer;
+};
 
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-// /////////////////////////////////////////////////
-// //  slice - do not mutate
-// let arr = ['a', 'b', 'c', 'd', 'e'];
-
-// console.log(arr.slice(2));
-// console.log(arr.slice(2, 4));
-
-// console.log(arr.slice(-1));
-// console.log(arr.slice(1, -2));
-// // splice - mutate
-
-// // console.log(arr.splice(2));
-// console.log(arr);
-
-// // reverse - mutate
-// const arr2 = ['f', 'g', 'h'];
-// console.log(arr2.reverse());
-
-// // CONCAT
-
-// let letters = arr.concat(arr2);
-// console.log(letters);
-
-// // Join
-// console.log(letters.join('-'));
-
-//
-
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-// for (const [i, mov] of movements.entries()) {
-//     if (mov > 0) {
-//         console.log(`Movement ${i + 1} ${mov} winner`);
-//     } else console.log(`Movement ${i + 1} ${mov} looser`);
-// }
-
-// movements.forEach(function(mov, i, array) {
-//     if (mov > 0) {
-//         console.log(`Movement ${i + 1} ${mov} winner`);
-//     } else console.log(`Movement ${i + 1} ${mov} looser`);
-// });
-
-// const currencies = new Map([
-//     ['USD', 'United States dollar'],
-//     ['EUR', 'Euro'],
-//     ['GBP', 'Pound sterling'],
-// ]);
-
-// currencies.forEach(function(value, key, map) {
-//     console.log(`${key}: ${value}`);
-// });
-
-// const currenciesUnique = new Set(['USD', 'GBP', 'EUR', 'EUR']);
-// console.log(currenciesUnique);
-
-// currenciesUnique.forEach(function(value, key, mapy) {
-//     console.log(`${key}: ${value}`);
-// });
+// Formating movement dates
 
 const formatMovementDates = function(date, locale) {
     const calcDaysPassed = (date1, date2) =>
@@ -187,12 +137,11 @@ const formatMovementDates = function(date, locale) {
     if (daysPassed === 0) return `Today`;
     if (daysPassed === 1) return `Yesterday`;
     if (daysPassed <= 7) return ` ${daysPassed} days ago`;
-
-    // const day = `${date.getDate()}`.padStart(2, 0);
-    // const month = `${date.getMonth() + 1}`.padStart(2, 0);
-    // const year = date.getFullYear();
     return new Intl.DateTimeFormat(locale).format(date);
 };
+
+// Displaying Movements
+
 const displayMovements = function(acc, sort = false) {
     const movs = sort ?
         acc.movements.slice().sort((a, b) => a - b) :
@@ -222,7 +171,9 @@ const displayMovements = function(acc, sort = false) {
     });
 };
 
-const user = "Steven Thomas Williams";
+// const user = "Steven Thomas Williams";
+
+// Creating Username
 
 const createUsername = function(accs) {
     accs.forEach(function(acc) {
@@ -231,9 +182,10 @@ const createUsername = function(accs) {
             .split(" ")
             .map((name) => name[0])
             .join("");
-        console.log(acc.username);
     });
 };
+
+// Displaying Interest, Incomes and Deposits
 
 const displaySummary = function(acc) {
     const interest = acc.movements
@@ -263,9 +215,9 @@ const displaySummary = function(acc) {
     }).format(interest);
 };
 
-// const accounts = [account1, account2, account3, account4];
 createUsername(accounts);
-console.log(accounts);
+
+// Displaying and Calculating Balance
 
 const calcPrintBalance = function(acc) {
     const balance = acc.movements.reduce(function(acc, cur) {
@@ -278,17 +230,17 @@ const calcPrintBalance = function(acc) {
     }).format(balance);
 };
 
+// Refrehsing UI
+
 const updateInterface = function(currentAccount) {
     displayMovements(currentAccount);
     calcPrintBalance(currentAccount);
     displaySummary(currentAccount);
 };
 
-let currentAccount;
-// currentAccount = account1;
-// updateInterface(currentAccount);
-// containerApp.style.opacity = 100;
+let currentAccount, timer;
 
+// Logging In
 const login = function(e) {
     e.preventDefault();
 
@@ -300,7 +252,13 @@ const login = function(e) {
         labelWelcome.textContent = `Welcome back ${
       currentAccount.owner.split(" ")[0]
     }`;
+    } else {
+        alert("Wrong login or password");
+        inputLoginUsername.value = inputLoginPin.value = "";
+        inputLoginPin.blur();
+        return;
     }
+
     inputLoginUsername.value = inputLoginPin.value = "";
     inputLoginPin.blur();
     containerApp.style.opacity = 100;
@@ -319,9 +277,12 @@ const login = function(e) {
         currentAccount.locale,
         options
     ).format(now);
-
+    if (timer) clearInterval(timer);
+    timer = startLogOuTimer();
     updateInterface(currentAccount);
 };
+
+// Transfer Money to other account
 
 const transfer = function(e) {
     e.preventDefault();
@@ -343,7 +304,11 @@ const transfer = function(e) {
     currentAccount.movementsDates.push(new Date().toISOString());
 
     updateInterface(currentAccount);
+    clearInterval(timer);
+    startLogOuTimer();
 };
+
+// Closing account
 
 const closeAccount = function(e) {
     e.preventDefault();
@@ -361,6 +326,7 @@ const closeAccount = function(e) {
     inputCloseUsername.value = inputClosePin.value = "";
 };
 
+// Taking a Loan
 const takeALoan = function(e) {
     e.preventDefault();
     const amount = Number(Math.floor(inputLoanAmount.value));
@@ -375,52 +341,26 @@ const takeALoan = function(e) {
             inputLoanAmount.value = "";
         }, 3000);
     }
+    clearInterval(timer);
+    startLogOuTimer();
 };
 
+// Sorting Button
+
 let sorted = false;
-btnSort.addEventListener("click", function(e) {
+const sortButton = function(e) {
     e.preventDefault();
     displayMovements(currentAccount, !sorted);
     sorted = !sorted;
-});
+    clearInterval(timer);
+    startLogOuTimer();
+};
 
-//
+// Event Handlers
 
-const accountMovements = accounts.map((acc) => acc.movements);
-const allMovements = accountMovements.flat();
-const overallBalance = allMovements.reduce((acc, mov) => acc + mov, 0);
-console.log(overallBalance);
-console.log(allMovements);
-console.log(accountMovements);
-
+btnSort.addEventListener("click", sortButton);
+btnSort.addEventListener("click", sortButton);
 btnLogin.addEventListener("click", login);
-
 btnTransfer.addEventListener("click", transfer);
-
 btnClose.addEventListener("click", closeAccount);
-
 btnLoan.addEventListener("click", takeALoan);
-
-const num = 388854654.23;
-
-console.log(new Intl.NumberFormat("pl-PL").format(num));
-
-const ingridients = ["olives", "spinache"];
-const pizzaTimer = setTimeout(
-    (ing1, ing2) => console.log(`Here is your Pizza with ${ing1} and ${ing2}`),
-    3000,
-    ...ingridients
-);
-
-console.log("Waiting...");
-
-if (ingridients.includes("spinache")) clearTimeout(pizzaTimer);
-
-// Set Timeout
-setInterval(() => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
-    console.log(`${hours}:${minutes}:${seconds}`);
-}, 1000);
